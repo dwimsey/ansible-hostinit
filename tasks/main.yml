@@ -1,0 +1,26 @@
+---
+- name: Set hostnames according to inventory
+  hostname:
+    name: "{{ inventory_hostname }}"
+
+- name: Yum update
+  yum: name=* state=latest update_cache=yes
+  when: ansible_os_family == "RedHat"
+
+- name: Copy hosts file
+  template:
+    src: hosts.j2
+    dest: /etc/hosts
+
+- name: Copy resolv.conf file
+  template:
+    src: resolv.conf.j2
+    dest: /etc/resolv.conf
+
+- name: Install additional packages
+  package: name={{item}} state=present
+  with_items: hostinit_additional_packages
+
+- name: Start additional services
+  service: name={{item}} state=started enabled=yes
+  with_items: hostinit_additional_enabled_services
